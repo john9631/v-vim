@@ -1,274 +1,259 @@
 " Vim syntax file
-" Language:	V
-" Maintainer:	Oliver Kelton (https://github.com/ollykel)
-" Last Change:	2019 Jun 13
-" NOTE: largely based on go.vim, maintained by David Barnett
-"       see David Barnett (https://github.com/google/vim-ft-go)
-" Options:
-"   There are some options for customizing the highlighting; the recommended
-"   settings are the default values, but you can write:
-"     let OPTION_NAME = 0
-"   in your ~/.vimrc file to disable particular options. You can also write:
-"     let OPTION_NAME = 1
-"   to enable particular options. At present, all options default to on.
-"
-"   - g:v_highlight_array_whitespace_error
-"     Highlights white space after "[]".
-"   - g:v_highlight_chan_whitespace_error
-"     Highlights white space around the communications operator that don't
-"     follow the standard style.
-"     Highlights commonly used library types (io.Reader, etc.).
-"   - g:v_highlight_space_tab_error
-"     Highlights instances of tabs following spaces.
-"   - g:v_highlight_trailing_whitespace_error
-"     Highlights trailing white space.
+" Language:    V
+" Maintainer:  cheap glitch <cheap.glitch@gmail.com>
+" Version:     3.0.2
+" URL:         https://github.com/cheap-glitch/vim-v
 
-" Quit when a (custom) syntax file was already loaded
 if exists('b:current_syntax')
-  finish
+	finish
 endif
-
-if !exists('g:v_highlight_array_whitespace_error')
-  let g:v_highlight_array_whitespace_error = 1
-endif
-if !exists('g:v_highlight_chan_whitespace_error')
-  let g:v_highlight_chan_whitespace_error = 1
-endif
-if !exists('g:v_highlight_space_tab_error')
-  let g:v_highlight_space_tab_error = 1
-endif
-if !exists('g:v_highlight_trailing_whitespace_error')
-  let g:v_highlight_trailing_whitespace_error = 1
-endif
-if !exists('g:v_highlight_function_calls')
-  let g:v_highlight_function_calls = 1
-endif
-if !exists('g:v_highlight_fields')
-  let g:v_highlight_fields = 1
-endif
-
-syn case match
-
-syn match       vDeclType           "\<\(struct\|interface\|type\|enum\)\>"
-syn keyword     vDeclaration        pub mut var const
-hi def link     vDeclType           Keyword
-hi def link     vDeclaration        Keyword
-
-syn keyword     vDirective          module import
-hi def link     vDirective          Statement
-
-syn region      vIncluded           display contained start=+"+ skip=+\\\\\|\\"+ end=+"+
-syn match       vIncluded           display contained "<[^>]*>"
-syn match       vFlagDefinition     display contained "\s\i[^\n]*"
-hi def link     vIncluded           vString
-hi def link     vFlagDefinition     vString
-
-syn match       vInclude            display "^\s*\zs\(%:\|#\)\s*include\>\s*["<]" contains=vIncluded
-syn match       vFlag               display "^\s*\zs\(%:\|#\)\s*flag\>\s*[^\n]*" contains=vFlagDefinition
-syn region      vShebang            display start=/^#!/ end=/$/
-hi def link     vInclude            Include
-hi def link     vFlag               Include
-hi def link     vShebang            Include
-
-" Keywords within functions
-syn keyword     vStatement          defer go goto return break continue
-hi def link     vStatement          Statement
-
-syn keyword     vConditional        if else match or select
-hi def link     vConditional        Conditional
-
-syn keyword     vRepeat             for in
-hi def link     vRepeat             Repeat
-
-syn match       vCodeGen            /$if\>/
-" XXX Enable when compile-time code-gen is implemented in V
-" syn match       vCodeGen            /\.fields\>/
-" syn match       vCodeGen            /\.$\i*\>/
-hi def link     vCodeGen            Identifier
-
-" Predefined types
-syn keyword     vType               any chan char map bool string error voidptr
-syn match       vOptionalType       "\%(\<?\)\@<=\(chan\|map\|bool\|string\|error\|voidptr\)"
-syn keyword     vSignedInts         int i8 i16 i64 isize rune intptr
-syn keyword     vUnsignedInts       byte u16 u32 u64 usize byteptr
-syn keyword     vFloats             f32 f64 floatptr
-" XXX Enable when complex numbers are implemented in V
-" syn keyword    	vComplexes          complex64 complex128
-
-hi def link     vType               Type
-hi def link     vOptionalType       Type
-hi def link     vSignedInts         Type
-hi def link     vUnsignedInts       Type
-hi def link     vFloats             Type
-" XXX Enable when complex numbers implemented in V
-" hi def link    	vComplexes          Type
-
-" Treat fn specially: it's a declaration at the start of a line, but a type
-" elsewhere. Order matters here.
-syn match       vDeclaration        /\<fn\>/
-syn match       vDeclaration        contained /\<fn\>/
-
-" Predefined functions and values
-syn keyword     vBuiltins           assert C
-syn keyword     vBuiltins           complex exit imag
-syn keyword     vBuiltins           print println eprint eprintln
-syn keyword     vBuiltins           malloc copy memdup  isnil
-syn keyword     vBuiltins           panic recover
-syn match       vBuiltins           /\<json\.\(encode\|decode\)\>/
-hi def link     vBuiltins           Keyword
-
-syn keyword     vConstants          true false
-hi def link     vConstants          Keyword
-
-" Comments; their contents
-syn keyword     vTodo               contained TODO FIXME XXX BUG
-hi def link     vTodo               Todo
-
-syn cluster     vCommentGroup       contains=vTodo
-syn region      vComment            start="/\*" end="\*/" contains=@vCommentGroup,@Spell
-syn region      vComment            start="//" end="$" contains=@vCommentGroup,@Spell
-hi def link     vComment            Comment
-
-" V escapes
-syn match       vStringVar          display contained +\$[0-9A-Za-z\._]*\([(][^)]*[)]\)\?+
-syn match       vStringVar          display contained "\${[^}]*}"
-syn match       vStringSpeChar      display contained +\\[abfnrtv\\'"`]+
-syn match       vStringX            display contained "\\x\x\{1,2}"
-syn match       vStringU            display contained "\\u\x\{4}"
-syn match       vStringBigU         display contained "\\U\x\{8}"
-syn match       vStringError        display contained +\\[^0-7xuUabfnrtv\\'"]+
-
-hi def link     vStringVar          Special
-hi def link     vStringSpeChar      Special
-hi def link     vStringX            Special
-hi def link     vStringU            Special
-hi def link     vStringBigU         Special
-hi def link     vStringError        Error
-
-" Characters and their contents
-syn cluster     vCharacterGroup     contains=vStringSpeChar,vStringVar,vStringX,vStringU,vStringBigU
-syn region      vCharacter          start=+`+ end=+`+ contains=@vCharacterGroup
-hi def link     vCharacter          Character
-
-" Strings and their contents
-syn cluster     vStringGroup        contains=@vCharacterGroup,vStringError
-
-syn region      vString             start=+"+ skip=+\\\\\|\\'+ end=+"+ contains=@vStringGroup
-syn region      vString             start=+'+ skip=+\\\\\|\\'+ end=+'+ contains=@vStringGroup
-
-syn region      vRawString          start=+r"+ end=+"+
-syn region      vRawString          start=+r'+ end=+'+
-
-hi def link     vString             String
-hi def link     vRawString          String
-
-" Regions
-syn region      vBlock              start="{" end="}" transparent fold
-syn region      vParen              start='(' end=')' transparent
-
-" Integers
-syn match       vDecimalInt         "\<\d\+\([Ee]\d\+\)\?\>"
-syn match       vOctalInt           "\<0o\o\+\>"
-syn match       vHexInt             "\<0x\x\+\>"
-syn match       vBinaryInt          "\<0b[01]\+\>"
-syn match       vSnakeInt           "\<[0-9_]\+\>"
-
-hi def link     vDecimalInt         Integer
-hi def link     vOctalInt           Integer
-hi def link     vHexInt             Integer
-hi def link     vBinaryInt          Integer
-hi def link     vSnakeInt           Integer
-hi def link     Integer             Number
-
-" Floating point
-syn match       vFloat              "\<\d\+\.\d*\([Ee][-+]\d\+\)\?\>"
-syn match       vFloat              "\<\.\d\+\([Ee][-+]\d\+\)\?\>"
-syn match       vFloat              "\<\d\+[Ee][-+]\d\+\>"
-
-hi def link     vFloat              Float
-hi def link     Float               Number
-
-" Imaginary literals
-" XXX Enable when complex numbers are implemented in V
-" syn match       vImaginary          "\<\d\+i\>"
-" syn match       vImaginary          "\<\d\+\.\d*\([Ee][-+]\d\+\)\?i\>"
-" syn match       vImaginary          "\<\.\d\+\([Ee][-+]\d\+\)\?i\>"
-" syn match       vImaginary          "\<\d\+[Ee][-+]\d\+i\>"
-" 
-" hi def link    	vImaginary          Number
-
-" Generics
-syn match     vGenericBrackets      display contained "[<>]"
-syn match     vInterfaceDeclaration display "\s*\zsinterface\s*\i*\s*<[^>]*>" contains=vDeclType,vGenericBrackets
-syn match     vStructDeclaration    display "\s*\zsstruct\s*\i*\s*<[^>]*>" contains=vDeclType,vGenericBrackets
-" vFunctionName only appears when v_highlight_function_calls set
-syn match     vFuncDeclaration      display "\s*\zsfn\s*\i*\s*<[^>]*>" contains=vFunctionName,vDeclaration,vGenericBrackets
-
-hi def link   vGenericBrackets      Identifier
-
-" Spaces after "[]"
-if v_highlight_array_whitespace_error != 0
-  syn match   vSpaceError           display "\(\[\]\)\@<=\s\+"
-endif
-
-" Spacing errors around the 'chan' keyword
-if v_highlight_chan_whitespace_error != 0
-  " receive-only annotation on chan type
-  syn match   vSpaceError           display "\(<-\)\@<=\s\+\(chan\>\)\@="
-  " send-only annotation on chan type
-  syn match   vSpaceError           display "\(\<chan\)\@<=\s\+\(<-\)\@="
-  " value-ignoring receives in a few contexts
-  syn match   vSpaceError           display "\(\(^\|[={(,;]\)\s*<-\)\@<=\s\+"
-endif
-
-" Space-tab error
-if v_highlight_space_tab_error != 0
-  syn match   vSpaceError           display " \+\t"me=e-1
-endif
-
-" Trailing white space error
-if v_highlight_trailing_whitespace_error != 0
-  syn match   vSpaceError           display excludenl "\s\+$"
-endif
-
-hi def link   vSpaceError           Error
-
-" Function calls and Fields are from: https://github.com/fatih/vim-go/blob/master/syntax/go.vim
-" Function calls;
-if v_highlight_function_calls
-  syn match   vFunctionCall        /\w\+\ze\s*(/ contains=vBuiltins,vDeclaration
-  syn match   vFunctionName        display contained /\s\w\+/
-  hi def link vFunctionName        Special
-endif
-
-hi def link   vFunctionCall        Special
-
-" Fields;
-if v_highlight_fields
-  " 1. Match a sequence of word characters coming after a '.'
-  " 2. Require the following but dont match it: ( \@= see :h E59)
-  "    - The symbols: / - + * %   OR
-  "    - The symbols: [] {} <> )  OR
-  "    - The symbols: \n \r space OR
-  "    - The symbols: , : .
-  " 3. Have the start of highlight (hs) be the start of matched
-  "    pattern (s) offsetted one to the right (+1) (see :h E401)
-  syn match   vField /\.\w\+\
-        \%(\%([\/\-\+*%]\)\|\
-        \%([\[\]{}<\>\)]\)\|\
-        \%([\!=\^|&]\)\|\
-        \%([\n\r\ ]\)\|\
-        \%([,\:.]\)\)\@=/hs=s+1
-endif
-hi def link   vField               Identifier
-
-" Search backwards for a global declaration to start processing the syntax.
-"syn sync match	vSync grouphere NONE /^\(const\|var\|type\|func\)\>/
-
-" There's a bug in the implementation of grouphere. For now, use the
-" following as a more expensive/less precise workaround.
-syn sync minlines=500
-
 let b:current_syntax = 'vlang'
 
-" vim: sw=2 sts=2 et
+" Blocks {{{
+" ------------------------------------------------------------------------------
+
+syn region vBlockFuncArgs       start=/\V(/   end=/\V)/        transparent contained
+syn region vBlockConst          start=/\V(/   end=/\V)/   fold transparent contained
+syn region vBlockElse           start=/\V{/   end=/\V}/   fold transparent contained
+syn region vBlockEnum           start=/\V{/   end=/\V}/   fold transparent contained
+syn region vBlockFunction       start=/\V{/   end=/\V}/   fold transparent contained
+syn region vBlockIf             start=/\V{/   end=/\V}/   fold transparent contained
+syn region vBlockMap            start=/\V{/   end=/\V}/   fold transparent contained
+syn region vBlockMatch          start=/\V{/   end=/\V}/   fold transparent contained
+syn region vBlockMatchBranch    start=/\V{/   end=/\V}/   fold transparent contained
+syn region vBlockFuncParams     start=/\V(/   end=/\V)/        transparent contained skipwhite skipempty nextgroup=vReturnType,vBlockFunction
+syn region vBlockStruct         start=/\V{/   end=/\V}/   fold transparent contained
+syn region vBlockInterface      start=/\V{/   end=/\V}/   fold transparent contained
+syn region vBlockTypecast       start=/\V(/   end=/\V)/        transparent contained
+
+syn match  vCondition           /\v.+(\{)@=/                   transparent contained skipwhite skipempty nextgroup=vBlockIf
+syn match  vEnumName            /\v\w+/                        transparent contained skipwhite skipempty nextgroup=vBlockEnum
+syn match  vStructName          /\v(\w|[.<>])+/                transparent contained skipwhite skipempty nextgroup=vBlockStruct
+syn match  vInterfaceName       /\v\w+/                        transparent contained skipwhite skipempty nextgroup=vBlockInterface
+syn match  vMatchedVar          /\v\w+/                        transparent contained skipwhite skipempty nextgroup=vBlockMatch
+syn match  vReturnType          /\v(\w|[<>])+/                 transparent contained skipwhite skipwhite nextgroup=vBlockFunction
+syn match  vSumTypeName         /\v\w+/                        transparent contained skipwhite skipempty
+
+" ------------------------------------------------------------------------------
+" }}}
+
+" Operators {{{
+" ------------------------------------------------------------------------------
+
+syn match vOperator /\V+/
+syn match vOperator /\V-/
+syn match vOperator /\V*/
+syn match vOperator '\V/'
+syn match vOperator /\V%/
+syn match vOperator /\V>/
+syn match vOperator /\V</
+syn match vOperator /\V=/
+syn match vOperator /\V:=/ skipwhite skipempty nextgroup=vBlockMap
+syn match vOperator /\v(^|\s)in(\s|$)/
+
+" ------------------------------------------------------------------------------
+" }}}
+
+" Types {{{
+" ------------------------------------------------------------------------------
+
+syn keyword vType         bool byte byteptr rune string voidptr  nextgroup=vBlockTypecast
+syn keyword vInts         int i8 u8 i16 u16 i32 u32 i64 u64      nextgroup=vBlockTypecast
+syn keyword vFloats       f32 f64                                nextgroup=vBlockTypecast
+syn keyword vEnum         enum                                   skipwhite nextgroup=vEnumName
+syn keyword vStruct       struct                                 skipwhite nextgroup=vStructName
+syn keyword vInterface    interface                              skipwhite nextgroup=vInterfaceName
+syn match   vGenericType  /\v\<\w+\>/                            contained containedin=vStructName,vFunctionDeclaration,vReturnType
+syn keyword vSumType      type                                   skipwhite nextgroup=vSumTypeName
+
+" ------------------------------------------------------------------------------
+" }}}
+
+" Constants {{{
+" ------------------------------------------------------------------------------
+
+syn match   vNumber     /\v([a-zA-Z_:]\d*)@<!\d+(\.(\d+)?)?/
+syn match   vCharacter  /\v`.`/
+syn keyword vBoolean    true false
+
+" ------------------------------------------------------------------------------
+" }}}
+
+" Strings {{{
+" ------------------------------------------------------------------------------
+
+syn region  vString  start=/\vr?'/ end=/\v'/
+syn region  vString  start=/\vr?"/ end=/\v"/
+
+" Escape sequences
+syn match   vEscapeSequence      /\v\\[nrst\"'$]/                                   contained containedin=vString
+
+" String interpolations
+syn match   vInterpolationVar    /\v\$\w+/                                          contained containedin=vString
+syn region  vInterpolationBlock  matchgroup=vEscapeSequence start=/\V${/ end=/\V}/  contained containedin=vString  contains=@vInterpolationBlockContained
+
+syn cluster vInterpolationBlockContained  contains=vOperator,vNumber,vCharacter,vBoolean,vString,vKeyword,vConditional,vRepeat,vFunctionCall,vMethodCall
+
+" ------------------------------------------------------------------------------
+" }}}
+
+" Statements {{{
+" ------------------------------------------------------------------------------
+
+syn keyword vKeyword      as
+syn keyword vKeyword      assert
+syn keyword vKeyword      break
+syn keyword vKeyword      const     skipwhite skipempty nextgroup=vBlockConst
+syn keyword vKeyword      continue
+syn keyword vKeyword      fn
+syn keyword vKeyword      go
+syn keyword vKeyword      goto
+syn keyword vKeyword      import
+syn keyword vKeyword      len
+syn keyword vKeyword      map
+syn keyword vKeyword      match     skipwhite skipempty nextgroup=vMatchedVar
+syn keyword vKeyword      module
+syn keyword vKeyword      mut
+syn keyword vKeyword      return
+syn keyword vConditional  else      skipwhite skipempty nextgroup=vBlockElse
+syn keyword vConditional  if        skipwhite skipempty nextgroup=vCondition
+syn keyword vConditional  or        skipwhite skipempty nextgroup=vBlockElse
+syn keyword vRepeat       for
+syn keyword vExport       pub
+
+" ------------------------------------------------------------------------------
+" }}}
+
+" Labels {{{
+" ------------------------------------------------------------------------------
+
+syn match vMapKey      /\v^\s*\w+\s*:[^=]/he=e-2
+syn match vConstName   /\v^\s*\w+\s*\=/he=e-1      contained containedin=vBlockConst
+syn match vMatchLabel  /\v\.?\w+\s*\{@=/he=e-1     contained containedin=vBlockMatch skipwhite skipempty nextgroup=vBlockMatchBranch
+
+" ------------------------------------------------------------------------------
+" }}}
+
+" Functions {{{
+" ------------------------------------------------------------------------------
+
+syn match vFunctionCall         /\v\w+\(/he=e-1                      nextgroup=vBlockFuncArgs
+syn match vMethodCall           /\v\.\w+\(/hs=s+1,he=e-1             nextgroup=vBlockFuncArgs
+syn match vFunctionDeclaration  /\v(fn)@2<= (\w|[<>])+/              nextgroup=vBlockFuncParams
+syn match vMethodDeclaration    /\v(fn \(\w+ (\w|[<>])+\))@<= \w+/   nextgroup=vBlockFuncParams
+
+" ------------------------------------------------------------------------------
+" }}}
+
+" Modules {{{
+" ------------------------------------------------------------------------------
+
+" Built-in
+syn keyword vBuiltInModule math
+syn keyword vBuiltInModule os
+
+" User-defined
+syn match vModuleName /\v((^import)@7<=|(^module)@7<=) (\w|\.)+/
+
+" ------------------------------------------------------------------------------
+" }}}
+
+" Pre-proc {{{
+" ------------------------------------------------------------------------------
+
+syn match   vPreProcIf       /\V$if /                                           skipwhite skipempty nextgroup=vOS,vDebug,vCondition
+syn match   vPreProcElse     /\V$else/                                          skipwhite skipempty nextgroup=vBlockElse
+syn keyword vOS              linux mac windows                        contained skipwhite skipempty nextgroup=vBlockIf
+syn keyword vDebug           debug                                    contained skipwhite skipempty nextgroup=vBlockIf
+
+" Special markers
+syn match   vSpecialMarkers  /\v\[(inline|live)\]/
+
+" C-style pre-proc
+syn match   cPreProc         /\v#(include|define|ifn?def|endif|flag)/           skipwhite skipempty nextgroup=cConstName,cHeaderName,cCompilationFlag
+syn match   cConstName       /\v\w+/                                  contained
+syn match   cHeaderName      /\v\<\w+\.h\>/                           contained
+syn match   cCompilationFlag /\v-\w+/                                 contained
+
+" ------------------------------------------------------------------------------
+" }}}
+
+" Warnings {{{
+" ------------------------------------------------------------------------------
+
+if !exists('g:v_warnings')
+	let g:v_warnings = 0
+endif
+
+if g:v_warnings
+	" Highlight lines containing statements ending with semicolons
+	syn match vWarning /\v.*;(\s*}|$)/
+
+	" Highlight conditions surrounded by parentheses
+	syn match vWarning /\v((if)@2<=|(else)@4<=) \([^)]*\)($| ?\{)/
+endif
+
+" ------------------------------------------------------------------------------
+" }}}
+
+" Comments {{{
+" ------------------------------------------------------------------------------
+
+syn match  vComment          '\v//.*$'
+syn region vMultiLineComment start='\v/\*' end='\v\*/' skip=/\v'|"|;/
+
+syn keyword vTodo TODO FIXME BUG contained containedin=vComment,vMultiLineComment
+
+" ------------------------------------------------------------------------------
+" }}}
+
+" Highlight links {{{
+" ------------------------------------------------------------------------------
+
+hi link   vBoolean                    Boolean
+hi link   vBuiltInModule              Function
+hi link   vCharacter                  Character
+hi link   vComment                    Comment
+hi link   vConditional                Conditional
+hi link   vConstName                  Identifier
+hi link   vDebug                      Debug
+hi link   vEnum                       Structure
+hi link   vSumType                    Define
+hi link   vEscapeSequence             Special
+hi link   vFloats                     Type
+hi link   vFunctionCall               Function
+hi link   vFunctionDeclaration        Title
+hi link   vInterpolationBlockBounds   Special
+hi link   vInterpolationVar           Special
+hi link   vInts                       Type
+hi link   vKeyword                    Keyword
+hi link   vLabel                      Label
+hi link   vMapKey                     Identifier
+hi link   vMatchLabel                 Identifier
+hi link   vMethodCall                 Function
+hi link   vMethodDeclaration          Title
+hi link   vModuleName                 Identifier
+hi link   vMultiLineComment           Comment
+hi link   vNumber                     Number
+hi link   vOS                         PreCondit
+hi link   vOperator                   Operator
+hi link   vPreProcElse                PreCondit
+hi link   vPreProcIf                  PreCondit
+hi link   vExport                     Special
+hi link   vRepeat                     Repeat
+hi link   vString                     String
+hi link   vStruct                     Structure
+hi link   vInterface                  Special
+hi link   vTodo                       Todo
+hi link   vSpecialMarkers             Special
+hi link   vType                       Type
+hi link   vWarning                    Error
+hi link   vGenericType                Special
+
+hi link   cPreProc                    PreCondit
+hi link   cConstName                  Identifier
+hi link   cHeaderName                 Identifier
+hi link   cCompilationFlag            Identifier
+
+" ------------------------------------------------------------------------------
+" }}}
